@@ -5,6 +5,9 @@ const mongoose = require('mongoose')
 // Routes
 const authRoutes = require('./routes/authRoute')
 
+//validtr Routes
+//const validatorRoutes = require('./playground/validator')
+
 const app = express();
 
 app.set('view engine', 'ejs')
@@ -21,6 +24,9 @@ app.use(middleware)
 
 app.use('/auth', authRoutes)
 
+//Validator
+//app.use('/playground', validatorRoutes)
+
 app.get('/', (req, res) => {
 
     res.json({
@@ -32,8 +38,8 @@ const PORT = process.env.PORT || 8080
 
 
 mongoose.connect('mongodb://localhost:27017/blog',
-    {useNewUrlParser: true})
-    .then(()=>{
+    { useNewUrlParser: true })
+    .then(() => {
         console.log('Connected')
         app.listen(PORT, () => {
             console.log(`Server in rinning onPORT ${PORT}`)
