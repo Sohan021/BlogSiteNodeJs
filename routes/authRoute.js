@@ -12,13 +12,13 @@ const {
     signOutController
 } = require('../controllers/authController')
 
+const { isUnAuthenticated } = require('../middleware/authMiddleware')
 
+router.get('/signup', isUnAuthenticated, signUpGetController)
+router.post('/signup', isUnAuthenticated, signUpValidator, signUpPostController)
 
-router.get('/signup', signUpGetController)
-router.post('/signup', signUpValidator, signUpPostController)
-
-router.get('/signin', signInGetController)
-router.post('/signin', signInValidator, signInPostController)
+router.get('/signin', isUnAuthenticated, signInGetController)
+router.post('/signin', isUnAuthenticated, signInValidator, signInPostController)
 
 router.get('/signout', signOutController)
 

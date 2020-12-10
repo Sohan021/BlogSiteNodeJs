@@ -3,6 +3,8 @@ const bcrypt = require('bcrypt')
 const { validationResult } = require('express-validator')
 const { errorFormatter } = require('../utils/validationErrorFormatter')
 
+
+
 exports.signUpGetController = (req, res, next) => {
     res.render('pages/auth/signup', { title: 'Create A new Account', error: {}, value: {} })
 }
@@ -55,24 +57,31 @@ exports.signUpPostController = async (req, res, next) => {
 }
 
 exports.signInGetController = async (req, res, next) => {
+    //let isLoggedIn = req.get('Cookie').includes('isLoggedIn=true') ? true : false
+    console.log(req.session.isLoggedIn, req.session.user)
     res.render('pages/auth/signin', { title: 'Login', error: {} })
 }
 
 exports.signInPostController = async (req, res, next) => {
 
+    let { email, password } = req.body
+
+    // let isLoggedIn = req.get('Cookie').includes('isLoggedIn=true') ? true : false
+    // res.render('pages/auth/signin', { title: 'Login', error: {}, isLoggedIn })
 
     let error = validationResult(req)
     const formatter = (error) => error.msg
     let errors = error.formatWith(formatter)
 
-    let { email, password } = req.body
+
 
     if (!errors.isEmpty()) {
 
         return res.render('pages/auth/signin',
             {
                 title: 'Login Your Account',
-                error: errors.mapped()
+                error: errors.mapped(),
+                isLoggedIn
             })
     }
 
@@ -96,8 +105,18 @@ exports.signInPostController = async (req, res, next) => {
             })
         }
 
-        console.log('Successfully loggd In', user)
-        res.render('pages/auth/signin', { title: 'Login to Your account' })
+        req.session.isLoggedIn = true
+        req.session.user = user
+
+        req.session.save(e => {
+            if (e) {
+                console.log(e)
+                return next()
+            }
+            res.redirect('/dashboard')
+        })
+
+        //res.render('pages/auth/signin', { title: 'Login to Your account', error: {} })
 
     } catch (e) {
         console.log(e)
@@ -105,5 +124,11 @@ exports.signInPostController = async (req, res, next) => {
 }
 
 exports.signOutController = (req, res, next) => {
-
+    req.session.destroy(e => {
+        if (e) {
+            console.log(e)
+            return next(e)
+        }
+        return res.redirect('/auth/signin')
+    })
 }
