@@ -2,11 +2,17 @@ const User = require('../models/User')
 const bcrypt = require('bcrypt')
 const { validationResult } = require('express-validator')
 const { errorFormatter } = require('../utils/validationErrorFormatter')
-
+const Flash = require('../utils/Flash')
 
 
 exports.signUpGetController = (req, res, next) => {
-    res.render('pages/auth/signup', { title: 'Create A new Account', error: {}, value: {} })
+    res.render('pages/auth/signup',
+        {
+            title: 'Create A new Account',
+            error: {},
+            value: {},
+            flashMessage: Flash.getMessage(req)
+        })
 }
 
 exports.signUpPostController = async (req, res, next) => {
@@ -17,9 +23,9 @@ exports.signUpPostController = async (req, res, next) => {
 
     let { username, email, password } = req.body
     //let errors = validationResult(req).formatWith(errorFormatter)
-
+   
     if (!errors.isEmpty()) {
-
+        req.flash('fail', 'Please ck ur Form')
         return res.render('pages/auth/signup',
             {
                 title: 'Create A new Account',
@@ -28,7 +34,8 @@ exports.signUpPostController = async (req, res, next) => {
                     username,
                     email,
                     password
-                }
+                },
+                flashMessage: Flash.getMessage(req)
             })
     }
 
@@ -45,9 +52,14 @@ exports.signUpPostController = async (req, res, next) => {
             password: hashedPassword
         })
 
-        let createUser = await user.save()
+        await user.save()
+        req.flash('success', 'User Created Successfully')
         console.log('User created Successfully', createUser)
-        res.render('pages/auth/signup', { title: 'Create A new Account' })
+        res.render('pages/auth/signin',
+            {
+                title: 'Create A new Account',
+                flashMessage: Flash.getMessage(req)
+            })
     } catch (e) {
         console.log(e)
         next(e)
@@ -58,8 +70,13 @@ exports.signUpPostController = async (req, res, next) => {
 
 exports.signInGetController = async (req, res, next) => {
     //let isLoggedIn = req.get('Cookie').includes('isLoggedIn=true') ? true : false
-    console.log(req.session.isLoggedIn, req.session.user)
-    res.render('pages/auth/signin', { title: 'Login', error: {} })
+    //console.log(req.session.isLoggedIn, req.session.user)
+    res.render('pages/auth/signin',
+        {
+            title: 'Login',
+            error: {},
+            flashMessage: Flash.getMessage(req)
+        })
 }
 
 exports.signInPostController = async (req, res, next) => {
@@ -74,14 +91,14 @@ exports.signInPostController = async (req, res, next) => {
     let errors = error.formatWith(formatter)
 
 
-
+  
     if (!errors.isEmpty()) {
-
+        req.flash('fail', 'Please ck ur Form')
         return res.render('pages/auth/signin',
             {
                 title: 'Login Your Account',
                 error: errors.mapped(),
-                isLoggedIn
+                flashMessage: Flash.getMessage(req)
             })
     }
 
@@ -91,18 +108,25 @@ exports.signInPostController = async (req, res, next) => {
         let user = await User.findOne({ email })
 
         if (!user) {
-            return res.json({
-                message: 'Invalid Credential'
-            })
+            req.flash('fail', 'Please provide vadlid crdntial')
+            return res.render('pages/auth/signin',
+                {
+                    title: 'Login Your Account',
+                    error: {},
+                    flashMessage: Flash.getMessage(req)
+                })
         }
 
         let match = await bcrypt.compare(password, user.password)
 
         if (!match) {
-
-            return res.json({
-                message: 'Invalid Credential'
-            })
+            req.flash('fail', 'Please provide vadlid crdntial')
+            return res.render('pages/auth/signin',
+                {
+                    title: 'Login Your Account',
+                    error: {},
+                    flashMessage: Flash.getMessage(req)
+                })
         }
 
         req.session.isLoggedIn = true
@@ -113,6 +137,7 @@ exports.signInPostController = async (req, res, next) => {
                 console.log(e)
                 return next()
             }
+            req.flash('success', 'Successfully Logged in')
             res.redirect('/dashboard')
         })
 
@@ -129,6 +154,7 @@ exports.signOutController = (req, res, next) => {
             console.log(e)
             return next(e)
         }
+        req.flash('success', 'Successfully Logged in')
         return res.redirect('/auth/signin')
     })
 }

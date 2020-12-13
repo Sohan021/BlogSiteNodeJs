@@ -1,64 +1,35 @@
 const express = require('express');
-const morgan = require('morgan');
 const mongoose = require('mongoose')
 
-// Routes
-const authRoutes = require('./routes/authRoute');
-const dashboardRoutes = require('./routes/dashboardRoute')
-const session = require('express-session');
-const MongoDBStore = require('connect-mongodb-session')(session);
-//validtr Routes
-//const validatorRoutes = require('./playground/validator')
-//Middleware Import
-const { bindUserWithRequest } = require('./middleware/authMiddleware')
-const setLocals = require('./middleware/setLocals')
+const setMiddleware = require('./middleware/middlewares')
+const setRoutes = require('./routes/routes')
+
 const app = express();
 
 app.set('view engine', 'ejs')
 app.set('views', 'views')
 
+setMiddleware(app)
 
+setRoutes(app)
 
+app.use((req, res, next) => {
+    let error = new Error('404 Page Not Found')
+    error.status = 404
+    next(error)
+})
 
-const store = new MongoDBStore({
-    uri: 'mongodb://localhost:27017/blog',
-    collection: 'sessions',
-    expires: 1000 * 60 * 60 * 2
-});
-
-
-const middleware = [
-    morgan('dev'),
-    express.static('public'),
-    express.urlencoded({ extended: true }),
-    express.json(),
-    session({
-        secret: process.env.SECRET_KEY || 'SECRET_KEY',
-        resave: false,
-        saveUninitialized: false,
-        store: store
-    }),
-    bindUserWithRequest(),
-    setLocals()
-]
-
-app.use(middleware)
-
-app.use('/auth', authRoutes)
-app.use('/dashboard', dashboardRoutes)
-
-//Validator
-//app.use('/playground', validatorRoutes)
-
-app.get('/', (req, res) => {
-
-    res.json({
-        message: 'hello'
-    })
+app.use((error, req, res, next) => {
+    if (error.status === 404) {
+        return res.render('pages/error/404', { flashMessage: {} })
+    } else {
+        res.render('pages/error/500', { flashMessage: {} })
+    }
+    
+   
 })
 
 const PORT = process.env.PORT || 8080
-
 
 mongoose.connect('mongodb://localhost:27017/blog',
     { useNewUrlParser: true })
