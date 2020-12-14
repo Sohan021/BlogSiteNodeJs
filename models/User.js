@@ -20,6 +20,10 @@ const userSchema = new Schema({
     profile: {
         type: Schema.Types.ObjectId,
         ref: 'Profile'
+    },
+    profilePic: {
+        type: String,
+        default: '/uploads/default.jpg'
     }
 
 }, {

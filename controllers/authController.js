@@ -154,7 +154,6 @@ exports.signOutController = (req, res, next) => {
             console.log(e)
             return next(e)
         }
-        req.flash('success', 'Successfully Logged in')
         return res.redirect('/auth/signin')
     })
 }
