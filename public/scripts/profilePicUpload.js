@@ -39,9 +39,9 @@ window.onload = function () {
 
     $('#cancel-cropping').on('click', function () {
         $('#crop-modal').modal('hide')
-        setTimeout(() => {
-            baseCropping.croppie('destroy')
-        }, 1000)
+        // setTimeout(() => {
+        //     baseCropping.croppie('destroy')
+        // }, 1000)
     })
 
     $('#upload-image').on('click', function () {
@@ -71,9 +71,9 @@ window.onload = function () {
                 document.getElementById('profilePicForm').reset()
 
                 $('#crop-modal').modal('hide')
-                setTimeout(() => {
-                    baseCropping.croppie('destroy')
-                }, 1000)
+                // setTimeout(() => {
+                //     baseCropping.croppie('destroy')
+                // }, 1000)
             })
     })
 
